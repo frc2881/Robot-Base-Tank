@@ -59,7 +59,7 @@ class Subsystems:
 class Sensors:
   class Gyro:
     class NAVX2:
-      kSerialPort = SerialPort.Port.kUSB1
+      kSerialPort = SerialPort.Port.kOnboard
 
   class Pose:
     kPoseSensors: dict[ChassisLocation, Transform3d] = {
