@@ -43,8 +43,8 @@ class DriveSubsystem(Subsystem):
     self._rightRear.follow(self._rightFront)
     self._rightCenter.follow(self._rightFront)
 
-    self._leftFront.setInverted(False)
-    self._rightFront.setInverted(True)
+    self._leftFront.setInverted(True)
+    self._rightFront.setInverted(False)
 
     self._drivetrain = DifferentialDrive(self._leftFront, self._rightFront)
     self._leftEncoder = self._leftFront.getEncoder()
