@@ -11,20 +11,6 @@ from lib.classes import PIDConstants, MotorControllerType, ChassisLocation, Swer
 
 class Subsystems:
   class Drive:
-    kLeftFrontID: int = 2
-    kLeftCenterID: int = 3
-    kLeftRearID: int = 4
-    kRightFrontID: int = 5
-    kRightCenterID: int = 6
-    kRightRearID: int = 7
-    
-    kCurrentLimit: int = 60
-
-    kDistanceFactor: float = 1.0
-    kVelocityFactor: float = 1.0
-
-    kDistanceBetweenWheels = units.inchesToMeters(6)
-
     kTrackWidth: units.meters = units.inchesToMeters(21.5)
     kWheelBase: units.meters = units.inchesToMeters(24.5)
     kDriveBaseRadius: units.meters = Translation2d().distance(Translation2d(kWheelBase / 2, kTrackWidth / 2))
@@ -51,10 +37,18 @@ class Subsystems:
 
     kDifferentialDriveKinematics = DifferentialDriveKinematics(kTrackWidth)
 
-    kWheelDiameterMeters: float = units.inchesToMeters(3.0)
+    kDrivingMotorLeftFrontCANId: int = 2
+    kDrivingMotorLeftCenterCANId: int = 3
+    kDrivingMotorLeftRearCANId: int = 4
+    kDrivingMotorRightFrontCANId: int = 5
+    kDrivingMotorRightCenterCANId: int = 6
+    kDrivingMotorRightRearCANId: int = 7
+
+    kWheelDiameter: units.meters = units.inchesToMeters(3.0)
     kDrivingMotorReduction: float = 8.46
-    kDrivingEncoderPositionConversionFactor: float = (kWheelDiameterMeters * math.pi) / kDrivingMotorReduction
-    kDrivingEncoderVelocityConversionFactor: float = ((kWheelDiameterMeters * math.pi) / kDrivingMotorReduction) / 60.0
+    kDrivingEncoderPositionConversionFactor: float = (kWheelDiameter * math.pi) / kDrivingMotorReduction
+    kDrivingEncoderVelocityConversionFactor: float = ((kWheelDiameter * math.pi) / kDrivingMotorReduction) / 60.0
+    kDrivingMotorCurrentLimit: int = 60
 
 class Sensors:
   class Gyro:
@@ -70,9 +64,9 @@ class Sensors:
     }
     kPoseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
     kFallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
-    kVisionSingleTagStandardDeviations: tuple[float, ...] = [1.0, 1.0, 2.0]
-    kVisionMultiTagStandardDeviations: tuple[float, ...] = [0.5, 0.5, 1.0]
-    kVisionMaxPoseAmbiguity: units.percent = 0.2
+    kSingleTagStandardDeviations: tuple[float, ...] = [1.0, 1.0, 2.0]
+    kMultiTagStandardDeviations: tuple[float, ...] = [0.5, 0.5, 1.0]
+    kMaxPoseAmbiguity: units.percent = 0.2
 
   class Camera:
     kStreams: dict[str, str] = {

@@ -5,13 +5,12 @@ from wpilib.drive import DifferentialDrive
 from wpimath import units
 from wpimath.controller import PIDController
 from wpimath.filter import SlewRateLimiter
-from wpimath.geometry import Rotation2d, Pose2d
-from wpimath.kinematics import ChassisSpeeds, DifferentialDriveKinematics, DifferentialDriveWheelSpeeds
-from rev import CANSparkBase, CANSparkMax, CANSparkLowLevel
+from wpimath.geometry import Pose2d
+from wpimath.kinematics import ChassisSpeeds, DifferentialDriveWheelSpeeds
+from rev import CANSparkMax, CANSparkLowLevel
 from commands2 import Subsystem, Command
 from lib import utils, logger
-from lib.classes import ChassisLocation, MotorIdleMode, DriveSpeedMode, DriveOrientation, DriveDriftCorrection, DriveLockState
-from lib.components.swerve_module import SwerveModule
+from lib.classes import MotorIdleMode, DriveSpeedMode, DriveOrientation, DriveDriftCorrection, DriveLockState
 import constants
 
 class DriveSubsystem(Subsystem):
@@ -24,19 +23,19 @@ class DriveSubsystem(Subsystem):
     
     self._constants = constants.Subsystems.Drive
 
-    self._leftFront = CANSparkMax(self._constants.kLeftFrontID, CANSparkLowLevel.MotorType.kBrushless)
-    self._leftCenter = CANSparkMax(self._constants.kLeftCenterID, CANSparkLowLevel.MotorType.kBrushless)
-    self._leftRear = CANSparkMax(self._constants.kLeftRearID, CANSparkLowLevel.MotorType.kBrushless)
-    self._rightFront = CANSparkMax(self._constants.kRightFrontID, CANSparkLowLevel.MotorType.kBrushless)
-    self._rightCenter = CANSparkMax(self._constants.kRightCenterID, CANSparkLowLevel.MotorType.kBrushless)
-    self._rightRear = CANSparkMax(self._constants.kRightRearID, CANSparkLowLevel.MotorType.kBrushless)
+    self._leftFront = CANSparkMax(self._constants.kDrivingMotorLeftFrontCANId, CANSparkLowLevel.MotorType.kBrushless)
+    self._leftCenter = CANSparkMax(self._constants.kDrivingMotorLeftCenterCANId, CANSparkLowLevel.MotorType.kBrushless)
+    self._leftRear = CANSparkMax(self._constants.kDrivingMotorLeftRearCANId, CANSparkLowLevel.MotorType.kBrushless)
+    self._rightFront = CANSparkMax(self._constants.kDrivingMotorRightFrontCANId, CANSparkLowLevel.MotorType.kBrushless)
+    self._rightCenter = CANSparkMax(self._constants.kDrivingMotorRightCenterCANId, CANSparkLowLevel.MotorType.kBrushless)
+    self._rightRear = CANSparkMax(self._constants.kDrivingMotorRightRearCANId, CANSparkLowLevel.MotorType.kBrushless)
 
-    self._leftFront.setSmartCurrentLimit(self._constants.kCurrentLimit)
-    self._leftCenter.setSmartCurrentLimit(self._constants.kCurrentLimit)
-    self._leftRear.setSmartCurrentLimit(self._constants.kCurrentLimit)
-    self._rightFront.setSmartCurrentLimit(self._constants.kCurrentLimit)
-    self._rightCenter.setSmartCurrentLimit(self._constants.kCurrentLimit)
-    self._rightRear.setSmartCurrentLimit(self._constants.kCurrentLimit)
+    self._leftFront.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+    self._leftCenter.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+    self._leftRear.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+    self._rightFront.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+    self._rightCenter.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+    self._rightRear.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
 
     self._leftRear.follow(self._leftFront)
     self._leftCenter.follow(self._leftFront)
@@ -47,14 +46,13 @@ class DriveSubsystem(Subsystem):
     self._rightFront.setInverted(False)
 
     self._drivetrain = DifferentialDrive(self._leftFront, self._rightFront)
+    
     self._leftEncoder = self._leftFront.getEncoder()
     self._leftEncoder.setPositionConversionFactor(self._constants.kDrivingEncoderPositionConversionFactor)
     self._leftEncoder.setVelocityConversionFactor(self._constants.kDrivingEncoderVelocityConversionFactor)
     self._rightEncoder = self._rightFront.getEncoder()
     self._rightEncoder.setPositionConversionFactor(self._constants.kDrivingEncoderPositionConversionFactor)
     self._rightEncoder.setVelocityConversionFactor(self._constants.kDrivingEncoderVelocityConversionFactor)
-    self._kinematics = DifferentialDriveKinematics(self._constants.kDistanceBetweenWheels) 
-
 
     self._isDriftCorrectionActive: bool = False
     self._driftCorrectionThetaController = PIDController(
