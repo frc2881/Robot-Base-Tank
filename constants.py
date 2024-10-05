@@ -11,8 +11,8 @@ from lib.classes import PIDConstants, MotorControllerType, ChassisLocation, Swer
 
 class Subsystems:
   class Drive:
-    kTrackWidth: units.meters = units.inchesToMeters(21.5)
-    kWheelBase: units.meters = units.inchesToMeters(24.5)
+    kTrackWidth: units.meters = units.inchesToMeters(23)
+    kWheelBase: units.meters = units.inchesToMeters(27.5)
     kDriveBaseRadius: units.meters = Translation2d().distance(Translation2d(kWheelBase / 2, kTrackWidth / 2))
 
     kTranslationSpeedMax: units.meters_per_second = 4.8
@@ -57,10 +57,10 @@ class Sensors:
 
   class Pose:
     kPoseSensors: dict[ChassisLocation, Transform3d] = {
-      ChassisLocation.Front: Transform3d(
-        Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
-        Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-22.3), units.degreesToRadians(0.0))
-      )
+      # ChassisLocation.Front: Transform3d(
+      #   Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
+      #   Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-22.3), units.degreesToRadians(0.0))
+      # )
     }
     kPoseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
     kFallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
@@ -70,8 +70,8 @@ class Sensors:
 
   class Camera:
     kStreams: dict[str, str] = {
-      "Front": "http://10.28.81.6:1184/?action=stream",
-      "Driver": "http://10.28.81.6:1188/?action=stream"
+     # "Front": "http://10.28.81.6:1184/?action=stream",
+     # "Driver": "http://10.28.81.6:1188/?action=stream"
     }
 
 class Controllers:
