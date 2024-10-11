@@ -20,7 +20,8 @@ class AutoCommands:
     self._addAutoOptions()
 
   def _move(self, path: AutoPath) -> Command:
-    return AutoBuilder.pathfindThenFollowPath(self._paths.get(path), constants.Subsystems.Drive.kPathFindingConstraints)
+    # return AutoBuilder.pathfindThenFollowPath(self._paths.get(path), constants.Subsystems.Drive.kPathFindingConstraints)\
+    return AutoBuilder.followPath(self._paths.get(path))
   
   def _alignToTarget(self) -> Command:
     return cmd.sequence(self._robot.gameCommands.alignRobotToTargetCommand())
