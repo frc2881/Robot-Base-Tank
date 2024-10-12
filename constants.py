@@ -48,12 +48,12 @@ class Subsystems:
     kDrivingMotorReduction: float = 8.46
     kDrivingEncoderPositionConversionFactor: float = (kWheelDiameter * math.pi) / kDrivingMotorReduction
     kDrivingEncoderVelocityConversionFactor: float = ((kWheelDiameter * math.pi) / kDrivingMotorReduction) / 60.0
-    kDrivingMotorCurrentLimit: int = 60
+    kDrivingMotorCurrentLimit: int = 10
 
 class Sensors:
   class Gyro:
     class NAVX2:
-      kSerialPort = SerialPort.Port.kOnboard
+      kSerialPort = SerialPort.Port.kMXP
 
   class Pose:
     kPoseSensors: dict[ChassisLocation, Transform3d] = {
