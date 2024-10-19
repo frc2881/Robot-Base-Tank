@@ -47,10 +47,10 @@ class DriveSubsystem(Subsystem):
 
     self._drivetrain = DifferentialDrive(self._leftFront, self._rightFront)
     
-    self._leftEncoder = self._leftFront.getEncoder()
+    self._leftEncoder = self._leftRear.getEncoder()
     self._leftEncoder.setPositionConversionFactor(self._constants.kDrivingEncoderPositionConversionFactor)
     self._leftEncoder.setVelocityConversionFactor(self._constants.kDrivingEncoderVelocityConversionFactor)
-    self._rightEncoder = self._rightFront.getEncoder()
+    self._rightEncoder = self._rightRear.getEncoder()
     self._rightEncoder.setPositionConversionFactor(self._constants.kDrivingEncoderPositionConversionFactor)
     self._rightEncoder.setVelocityConversionFactor(self._constants.kDrivingEncoderVelocityConversionFactor)
 
@@ -114,6 +114,7 @@ class DriveSubsystem(Subsystem):
     SmartDashboard.putNumber("Robot/Drive/Chassis/Length", self._constants.kWheelBase)
     SmartDashboard.putNumber("Robot/Drive/Chassis/Width", self._constants.kTrackWidth)
     SmartDashboard.putNumber("Robot/Drive/Speed/Max", self._constants.kTranslationSpeedMax)
+    self.resetEncoder()
 
   def periodic(self) -> None:
     self._updateTelemetry()
@@ -287,8 +288,11 @@ class DriveSubsystem(Subsystem):
     self._arcadeDrive(0, 0)
     # self.drive(ChassisSpeeds())
     self.clearTargetAlignment()
+    self.resetEncoder()
   
   def _updateTelemetry(self) -> None:
     # SmartDashboard.putString("Robot/Drive/LockState", self._lockState.name)
     SmartDashboard.putBoolean("Robot/Drive/IsAlignedToTarget", self._isAlignedToTarget)
+    SmartDashboard.putNumber("Robot/Drive/LeftEncoder", self._leftEncoder.getPosition())
+    SmartDashboard.putNumber("Robot/Drive/RightEncoder", self._rightEncoder.getPosition())
   
