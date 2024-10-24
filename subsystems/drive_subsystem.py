@@ -10,7 +10,7 @@ from wpimath.kinematics import ChassisSpeeds, DifferentialDriveWheelSpeeds
 from rev import CANSparkMax, CANSparkLowLevel
 from commands2 import Subsystem, Command
 from lib import utils, logger
-from lib.classes import MotorIdleMode, DriveSpeedMode, DriveOrientation, DriveDriftCorrection, DriveLockState
+from lib.classes import MotorIdleMode, SpeedMode, DriveOrientation, OptionState, LockState
 import constants
 
 class DriveSubsystem(Subsystem):
@@ -82,10 +82,10 @@ class DriveSubsystem(Subsystem):
     self._inputYFilter = SlewRateLimiter(self._constants.kInputRateLimit)
     self._inputRotationFilter = SlewRateLimiter(self._constants.kInputRateLimit)
 
-    self._speedMode: DriveSpeedMode = DriveSpeedMode.Competition
+    self._speedMode: SpeedMode = SpeedMode.Competition
     speedModeChooser = SendableChooser()
-    speedModeChooser.setDefaultOption(DriveSpeedMode.Competition.name, DriveSpeedMode.Competition)
-    speedModeChooser.addOption(DriveSpeedMode.Training.name, DriveSpeedMode.Training)
+    speedModeChooser.setDefaultOption(SpeedMode.Competition.name, SpeedMode.Competition)
+    speedModeChooser.addOption(SpeedMode.Training.name, SpeedMode.Training)
     speedModeChooser.onChange(lambda speedMode: setattr(self, "_speedMode", speedMode))
     SmartDashboard.putData("Robot/Drive/SpeedMode", speedModeChooser)
 
@@ -96,10 +96,10 @@ class DriveSubsystem(Subsystem):
     orientationChooser.onChange(lambda orientation: setattr(self, "_orientation", orientation))
     SmartDashboard.putData("Robot/Drive/Orientation", orientationChooser)
 
-    self._driftCorrection: DriveDriftCorrection = DriveDriftCorrection.Enabled
+    self._driftCorrection: OptionState = OptionState.Enabled
     driftCorrectionChooser = SendableChooser()
-    driftCorrectionChooser.setDefaultOption(DriveDriftCorrection.Enabled.name, DriveDriftCorrection.Enabled)
-    driftCorrectionChooser.addOption(DriveDriftCorrection.Disabled.name, DriveDriftCorrection.Disabled)
+    driftCorrectionChooser.setDefaultOption(OptionState.Enabled.name, OptionState.Enabled)
+    driftCorrectionChooser.addOption(OptionState.Disabled.name, OptionState.Disabled)
     driftCorrectionChooser.onChange(lambda driftCorrection: setattr(self, "_driftCorrection", driftCorrection))
     SmartDashboard.putData("Robot/Drive/DriftCorrection", driftCorrectionChooser)
 
@@ -109,7 +109,7 @@ class DriveSubsystem(Subsystem):
     idleModeChooser.onChange(lambda idleMode: self._setIdleMode(idleMode))
     SmartDashboard.putData("Robot/Drive/IdleMode", idleModeChooser)
 
-    self._lockState: DriveLockState = DriveLockState.Unlocked
+    self._lockState: LockState = LockState.Unlocked
 
     SmartDashboard.putNumber("Robot/Drive/Chassis/Length", self._constants.kWheelBase)
     SmartDashboard.putNumber("Robot/Drive/Chassis/Width", self._constants.kTrackWidth)
@@ -260,7 +260,7 @@ class DriveSubsystem(Subsystem):
         self._targetAlignmentThetaController.setSetpoint(utils.wrapAngle(getTargetHeading() + self._constants.kTargetAlignmentHeadingInversion))  
       ]
     ).onlyIf(
-      lambda: self._lockState != DriveLockState.Locked
+      lambda: self._lockState != LockState.Locked
     ).until(
       lambda: self._isAlignedToTarget
     ).withName("DriveSubsystem:AlignToTarget")

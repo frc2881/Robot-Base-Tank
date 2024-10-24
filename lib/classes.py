@@ -18,6 +18,18 @@ class RobotState(Enum):
   Enabled = auto()
   EStopped = auto()
 
+class OptionState(Enum):
+  Enabled = auto()
+  Disabled = auto()
+
+class LockState(Enum):
+  Unlocked = auto()
+  Locked = auto()
+
+class SpeedMode(Enum):
+  Competition = auto()
+  Demo = auto()
+
 class ChassisLocation(Enum):
   FrontLeft = 0
   FrontRight = 1
@@ -44,18 +56,6 @@ class MotorControllerType(Enum):
 class DriveOrientation(Enum):
   Field = auto()
   Robot = auto()
-
-class DriveSpeedMode(Enum):
-  Competition = auto()
-  Training = auto()
-
-class DriveLockState(Enum):
-  Unlocked = auto()
-  Locked = auto()
-
-class DriveDriftCorrection(Enum):
-  Enabled = auto()
-  Disabled = auto()
 
 class ControllerRumbleMode(Enum):
   Both = auto()
