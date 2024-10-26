@@ -37,7 +37,7 @@ class LocalizationSubsystem(Subsystem):
     self._targetPose = Pose3d()
     self._targetInfo = TargetInfo(0, 0, 0)
     self._currentAlliance = None
-    self._visionActive = False
+    self._isVisionActive = False
 
     SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
     SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
@@ -65,22 +65,20 @@ class LocalizationSubsystem(Subsystem):
               estimatedRobotPose.timestampSeconds,
               constants.Sensors.Pose.kMultiTagStandardDeviations
             )
-            self._visionActive = True
+            self._isVisionActive = True
           else:
             for target in estimatedRobotPose.targetsUsed:
               if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Sensors.Pose.kMaxPoseAmbiguity):
                 self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Sensors.Pose.kSingleTagStandardDeviations)
-                self._visionActive = True
+                self._isVisionActive = True
                 break
-    pose = self._poseEstimator.getEstimatedPosition()
-    if utils.isPoseInBounds(pose, constants.Game.Field.kBounds):
-      self._pose = self._poseEstimator.getEstimatedPosition()
+    self._pose = self._poseEstimator.getEstimatedPosition()
 
   def getPose(self) -> Pose2d:
     return self._pose
 
   def resetPose(self, pose: Pose2d) -> None:
-    if not self._visionActive:
+    if not self._isVisionActive:
       self._poseEstimator.resetPosition(self._getGyroRotation(), self._getLeftEncoderPosition(), self._getRightEncoderPosition(), pose) 
 
   def hasVisionTargets(self) -> bool:

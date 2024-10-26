@@ -85,7 +85,7 @@ class DriveSubsystem(Subsystem):
     self._speedMode: SpeedMode = SpeedMode.Competition
     speedModeChooser = SendableChooser()
     speedModeChooser.setDefaultOption(SpeedMode.Competition.name, SpeedMode.Competition)
-    speedModeChooser.addOption(SpeedMode.Training.name, SpeedMode.Training)
+    speedModeChooser.addOption(SpeedMode.Demo.name, SpeedMode.Demo)
     speedModeChooser.onChange(lambda speedMode: setattr(self, "_speedMode", speedMode))
     SmartDashboard.putData("Robot/Drive/SpeedMode", speedModeChooser)
 
@@ -106,7 +106,7 @@ class DriveSubsystem(Subsystem):
     idleModeChooser = SendableChooser()
     idleModeChooser.setDefaultOption(MotorIdleMode.Brake.name, MotorIdleMode.Brake)
     idleModeChooser.addOption(MotorIdleMode.Coast.name, MotorIdleMode.Coast)
-    idleModeChooser.onChange(lambda idleMode: self._setIdleMode(idleMode))
+    # idleModeChooser.onChange(lambda idleMode: self._setIdleMode(idleMode))
     SmartDashboard.putData("Robot/Drive/IdleMode", idleModeChooser)
 
     self._lockState: LockState = LockState.Unlocked
