@@ -7,7 +7,7 @@ from wpimath.controller import PIDController
 from wpimath.filter import SlewRateLimiter
 from wpimath.geometry import Pose2d
 from wpimath.kinematics import ChassisSpeeds, DifferentialDriveWheelSpeeds
-from rev import CANSparkMax, CANSparkLowLevel
+from rev import CANSparkBase, CANSparkMax, CANSparkLowLevel
 from commands2 import Subsystem, Command
 from lib import utils, logger
 from lib.classes import MotorIdleMode, SpeedMode, DriveOrientation, OptionState, LockState
@@ -30,15 +30,15 @@ class DriveSubsystem(Subsystem):
     self._rightCenter = CANSparkMax(self._constants.kDrivingMotorRightCenterCANId, CANSparkLowLevel.MotorType.kBrushless)
     self._rightRear = CANSparkMax(self._constants.kDrivingMotorRightRearCANId, CANSparkLowLevel.MotorType.kBrushless)
 
-    self._leftFront.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
-    self._leftCenter.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
-    self._leftRear.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
-    self._rightFront.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
-    self._rightCenter.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
-    self._rightRear.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+    motors=[self._leftFront, self._leftCenter,self._leftRear,self._rightFront, self._rightCenter,self._rightRear]
+    for motor in motors:
+      motor.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+      motor.setIdleMode(CANSparkBase.IdleMode.kBrake)
 
+    self._leftCenter.setIdleMode(CANSparkBase.IdleMode.kCoast)
+    self._leftCenter.disable()
     self._leftRear.follow(self._leftFront)
-    self._leftCenter.follow(self._leftFront)
+    # self._leftCenter.follow(self._leftFront)
     self._rightRear.follow(self._rightFront)
     self._rightCenter.follow(self._rightFront)
 
