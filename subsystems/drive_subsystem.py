@@ -35,10 +35,8 @@ class DriveSubsystem(Subsystem):
       motor.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
       motor.setIdleMode(CANSparkBase.IdleMode.kBrake)
 
-    self._leftCenter.setIdleMode(CANSparkBase.IdleMode.kCoast)
-    self._leftCenter.disable()
     self._leftRear.follow(self._leftFront)
-    # self._leftCenter.follow(self._leftFront)
+    self._leftCenter.follow(self._leftFront)
     self._rightRear.follow(self._rightFront)
     self._rightCenter.follow(self._rightFront)
 
