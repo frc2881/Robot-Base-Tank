@@ -48,7 +48,7 @@ class Subsystems:
     kDrivingMotorReduction: float = 8.46
     kDrivingEncoderPositionConversionFactor: float = (kWheelDiameter * math.pi) / kDrivingMotorReduction
     kDrivingEncoderVelocityConversionFactor: float = ((kWheelDiameter * math.pi) / kDrivingMotorReduction) / 60.0
-    kDrivingMotorCurrentLimit: int = 10
+    kDrivingMotorCurrentLimit: int = 50
 
 class Sensors:
   class Gyro:
