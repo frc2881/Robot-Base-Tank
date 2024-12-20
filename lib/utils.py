@@ -7,7 +7,7 @@ import wpimath
 from wpimath import units
 from wpimath.geometry import Pose2d, Translation2d
 from wpilib import DriverStation
-from rev import CANSparkBase, REVLibError
+from rev import SparkBase, SparkBaseConfig, REVLibError
 from lib import logger
 from lib.classes import Alliance, RobotMode, RobotState
 import robot
@@ -66,17 +66,26 @@ def wrapAngle(angle: units.degrees) -> units.degrees:
 def isPoseInBounds(pose: Pose2d, bounds: Tuple[Translation2d, Translation2d]) -> bool:
   return isValueInRange(pose.X(), bounds[0].X(), bounds[1].X()) and isValueInRange(pose.Y(), bounds[0].Y(), bounds[1].Y())
 
-def getInterpolatedValue(x: float, xs: list[float], ys: list[float]) -> float:
+def getInterpolatedValue(x: float, xs: tuple[float, ...], ys: tuple[float, ...]) -> float:
   try:
     return numpy.interp([x], xs, ys)[0]
   except:
     return math.nan
 
-def enableSoftLimits(controller: CANSparkBase, isEnabled: bool) -> None:
-  controller.enableSoftLimit(CANSparkBase.SoftLimitDirection.kForward, isEnabled)
-  controller.enableSoftLimit(CANSparkBase.SoftLimitDirection.kReverse, isEnabled)
+def setSparkSoftLimitsEnabled(motor: SparkBase, enabled: bool) -> None:
+  config = SparkBaseConfig()
+  (config.softLimit
+    .forwardSoftLimitEnabled(enabled)
+    .reverseSoftLimitEnabled(enabled))
+  setSparkConfig(
+    motor.configure(
+      config, 
+      SparkBase.ResetMode.kNoResetSafeParameters, 
+      SparkBase.PersistMode.kNoPersistParameters
+    )
+  )
 
-def validateParam(error: REVLibError) -> None:
+def setSparkConfig(error: REVLibError) -> None:
   if error != REVLibError.kOk:
     logger.error(f'REVLibError: {error}')
 

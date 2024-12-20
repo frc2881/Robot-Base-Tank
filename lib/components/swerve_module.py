@@ -3,83 +3,99 @@ from wpimath import units
 from wpimath.geometry import Rotation2d
 from wpimath.kinematics import SwerveModulePosition, SwerveModuleState
 from wpilib import SmartDashboard
-from rev import CANSparkBase, CANSparkLowLevel, CANSparkFlex, CANSparkMax, SparkAbsoluteEncoder
+from rev import SparkBase, SparkBaseConfig, SparkLowLevel, SparkFlex, SparkMax, ClosedLoopConfig
 from lib.classes import SwerveModuleConfig, MotorIdleMode, MotorControllerType
 from lib import utils, logger
 if TYPE_CHECKING: import constants
 
 class SwerveModule:
   def __init__(
-      self,
-      config: SwerveModuleConfig,
-      constants: "constants.Subsystems.Drive.SwerveModule"
-    ) -> None:
+    self,
+    config: SwerveModuleConfig,
+    constants: "constants.Subsystems.Drive.SwerveModule"
+  ) -> None:
     self._config = config
     self._constants = constants
 
     self._baseKey = f'Robot/Drive/SwerveModules/{self._config.location.name}'
     self._drivingTargetSpeed: units.meters_per_second = 0
 
-    self._drivingMotor = CANSparkFlex(self._config.drivingMotorCANId, CANSparkLowLevel.MotorType.kBrushless) if self._constants.kDrivingMotorControllerType == MotorControllerType.SparkFlex else CANSparkMax(self._config.drivingMotorCANId, CANSparkLowLevel.MotorType.kBrushless)
+    if self._constants.kDrivingMotorControllerType == MotorControllerType.SparkFlex:
+      self._drivingMotor = SparkFlex(self._config.drivingMotorCANId, SparkLowLevel.MotorType.kBrushless)
+    else: 
+      self._drivingMotor = SparkMax(self._config.drivingMotorCANId, SparkLowLevel.MotorType.kBrushless)
+    self._drivingMotorConfig = SparkBaseConfig()
+    (self._drivingMotorConfig
+      .setIdleMode(SparkBaseConfig.IdleMode.kBrake)
+      .smartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+      .secondaryCurrentLimit(self._constants.kDrivingMotorCurrentLimit))
+    (self._drivingMotorConfig.encoder
+      .positionConversionFactor(self._constants.kDrivingEncoderPositionConversionFactor)
+      .velocityConversionFactor(self._constants.kDrivingEncoderVelocityConversionFactor))
+    (self._drivingMotorConfig.closedLoop
+      .setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+      .pidf(self._constants.kDrivingMotorPIDConstants.P, self._constants.kDrivingMotorPIDConstants.I, self._constants.kDrivingMotorPIDConstants.D, self._constants.kDrivingMotorPIDConstants.FF)
+      .outputRange(self._constants.kDrivingMotorMaxReverseOutput, self._constants.kDrivingMotorMaxForwardOutput))
+    utils.setSparkConfig(
+      self._drivingMotor.configure(
+        self._drivingMotorConfig,
+        SparkBase.ResetMode.kResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters
+      )
+    )
+    self._drivingClosedLoopController = self._drivingMotor.getClosedLoopController()
     self._drivingEncoder = self._drivingMotor.getEncoder()
-    self._drivingPIDController = self._drivingMotor.getPIDController()
-    self._drivingMotor.setCANMaxRetries(10)
-    utils.validateParam(self._drivingMotor.restoreFactoryDefaults())
-    utils.validateParam(self._drivingPIDController.setFeedbackDevice(self._drivingEncoder))
-    utils.validateParam(self._drivingEncoder.setPositionConversionFactor(self._constants.kDrivingEncoderPositionConversionFactor))
-    utils.validateParam(self._drivingEncoder.setVelocityConversionFactor(self._constants.kDrivingEncoderVelocityConversionFactor))
-    utils.validateParam(self._drivingPIDController.setP(self._constants.kDrivingMotorPIDConstants.P))
-    utils.validateParam(self._drivingPIDController.setI(self._constants.kDrivingMotorPIDConstants.I))
-    utils.validateParam(self._drivingPIDController.setD(self._constants.kDrivingMotorPIDConstants.D))
-    utils.validateParam(self._drivingPIDController.setFF(self._constants.kDrivingMotorPIDConstants.FF))
-    utils.validateParam(self._drivingPIDController.setOutputRange(self._constants.kDrivingMotorMaxReverseOutput, self._constants.kDrivingMotorMaxForwardOutput))
-    utils.validateParam(self._drivingMotor.setSmartCurrentLimit(self._constants.kDrivingMotorCurrentLimit))
-    utils.validateParam(self._drivingMotor.setIdleMode(CANSparkBase.IdleMode.kBrake))
-    utils.validateParam(self._drivingMotor.burnFlash())
-
-    self._turningMotor = CANSparkMax(self._config.turningMotorCANId, CANSparkLowLevel.MotorType.kBrushless)
-    self._turningEncoder = self._turningMotor.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle)
-    self._turningPIDController = self._turningMotor.getPIDController()
-    self._turningMotor.setCANMaxRetries(10)
-    utils.validateParam(self._turningMotor.restoreFactoryDefaults())
-    utils.validateParam(self._turningPIDController.setFeedbackDevice(self._turningEncoder))
-    utils.validateParam(self._turningEncoder.setPositionConversionFactor(self._constants.kTurningEncoderPositionConversionFactor))
-    utils.validateParam(self._turningEncoder.setVelocityConversionFactor(self._constants.kTurningEncoderVelocityConversionFactor))
-    utils.validateParam(self._turningEncoder.setInverted(self._constants.kTurningEncoderInverted))
-    utils.validateParam(self._turningPIDController.setP(self._constants.kTurningMotorPIDConstants.P))
-    utils.validateParam(self._turningPIDController.setI(self._constants.kTurningMotorPIDConstants.I))
-    utils.validateParam(self._turningPIDController.setD(self._constants.kTurningMotorPIDConstants.D))
-    utils.validateParam(self._turningPIDController.setFF(self._constants.kTurningMotorPIDConstants.FF))
-    utils.validateParam(self._turningPIDController.setOutputRange(self._constants.kTurningMotorMaxReverseOutput, self._constants.kTurningMotorMaxForwardOutput))
-    utils.validateParam(self._turningPIDController.setPositionPIDWrappingEnabled(True))
-    utils.validateParam(self._turningPIDController.setPositionPIDWrappingMinInput(self._constants.kTurningEncoderPositionPIDMinInput))
-    utils.validateParam(self._turningPIDController.setPositionPIDWrappingMaxInput(self._constants.kTurningEncoderPositionPIDMaxInput))
-    utils.validateParam(self._turningMotor.setSmartCurrentLimit(self._constants.kTurningMotorCurrentLimit))
-    utils.validateParam(self._turningMotor.setIdleMode(CANSparkBase.IdleMode.kBrake))
-    utils.validateParam(self._turningMotor.burnFlash())
-
     self._drivingEncoder.setPosition(0)
+
+    self._turningMotor = SparkMax(self._config.turningMotorCANId, SparkLowLevel.MotorType.kBrushless)
+    self._turningMotorConfig = SparkBaseConfig()
+    (self._turningMotorConfig
+      .setIdleMode(SparkBaseConfig.IdleMode.kBrake)
+      .smartCurrentLimit(self._constants.kTurningMotorCurrentLimit)
+      .secondaryCurrentLimit(self._constants.kTurningMotorCurrentLimit))
+    (self._turningMotorConfig.absoluteEncoder
+      .inverted(self._constants.kTurningEncoderInverted)
+      .positionConversionFactor(self._constants.kTurningEncoderPositionConversionFactor)
+      .velocityConversionFactor(self._constants.kTurningEncoderVelocityConversionFactor))
+    (self._turningMotorConfig.closedLoop
+      .setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
+      .pidf(self._constants.kTurningMotorPIDConstants.P, self._constants.kTurningMotorPIDConstants.I, self._constants.kTurningMotorPIDConstants.D, self._constants.kTurningMotorPIDConstants.FF)
+      .outputRange(self._constants.kTurningMotorMaxReverseOutput, self._constants.kTurningMotorMaxForwardOutput)
+      .positionWrappingEnabled(True)
+      .positionWrappingInputRange(self._constants.kTurningEncoderPositionPIDMinInput, self._constants.kTurningEncoderPositionPIDMaxInput))
+    utils.setSparkConfig(
+      self._turningMotor.configure(
+        self._turningMotorConfig,
+        SparkBase.ResetMode.kResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters
+      )
+    )
+    self._turningClosedLoopController = self._turningMotor.getClosedLoopController()
+    self._turningEncoder = self._turningMotor.getAbsoluteEncoder()
 
     utils.addRobotPeriodic(self._updateTelemetry)
 
   def setTargetState(self, targetState: SwerveModuleState) -> None:
     targetState.angle = targetState.angle.__add__(Rotation2d(self._config.turningOffset))
-    targetState = SwerveModuleState.optimize(targetState, Rotation2d(self._turningEncoder.getPosition()))
+    targetState.optimize(Rotation2d(self._turningEncoder.getPosition()))
     targetState.speed *= targetState.angle.__sub__(Rotation2d(self._turningEncoder.getPosition())).cos()
-    self._drivingPIDController.setReference(targetState.speed, CANSparkBase.ControlType.kVelocity)
-    self._turningPIDController.setReference(targetState.angle.radians(), CANSparkBase.ControlType.kPosition)
+    self._drivingClosedLoopController.setReference(targetState.speed, SparkBase.ControlType.kVelocity)
+    self._turningClosedLoopController.setReference(targetState.angle.radians(), SparkBase.ControlType.kPosition)
     self._drivingTargetSpeed = targetState.speed
 
   def getState(self) -> SwerveModuleState:
     return SwerveModuleState(self._drivingEncoder.getVelocity(), Rotation2d(self._turningEncoder.getPosition() - self._config.turningOffset))
-  
+
   def getPosition(self) -> SwerveModulePosition:
     return SwerveModulePosition(self._drivingEncoder.getPosition(), Rotation2d(self._turningEncoder.getPosition() - self._config.turningOffset))
-  
+
   def setIdleMode(self, motorIdleMode: MotorIdleMode) -> None:
-    idleMode = CANSparkBase.IdleMode.kCoast if motorIdleMode == MotorIdleMode.Coast else CANSparkBase.IdleMode.kBrake
-    self._drivingMotor.setIdleMode(idleMode)
-    self._turningMotor.setIdleMode(idleMode)
+    idleMode = SparkBaseConfig.IdleMode.kCoast if motorIdleMode == MotorIdleMode.Coast else SparkBaseConfig.IdleMode.kBrake
+    utils.setSparkConfig(self._drivingMotor.configure(SparkBaseConfig().setIdleMode(idleMode), SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kNoPersistParameters))
+    utils.setSparkConfig(self._turningMotor.configure(SparkBaseConfig().setIdleMode(idleMode), SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kNoPersistParameters))
+    
+  def reset(self) -> None:
+    self._drivingEncoder.setPosition(0)
 
   def _updateTelemetry(self) -> None:
     SmartDashboard.putNumber(f'{self._baseKey}/Driving/Speed/Target', self._drivingTargetSpeed)
