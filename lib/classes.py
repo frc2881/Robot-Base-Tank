@@ -84,7 +84,7 @@ class SwerveModuleConfig:
   translation: Translation2d
 
 @dataclass(frozen=True)
-class DifferentialDriveModuleConfig:
+class DifferentialModuleConfig:
   location: ChassisLocation
   drivingMotorCANId: int
   leaderMotorCANId: int | None

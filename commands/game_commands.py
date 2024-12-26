@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
-from wpilib import RobotBase
 from commands2 import Command, cmd
+from wpilib import RobotBase
 if TYPE_CHECKING: from robot_container import RobotContainer
 from lib import utils
 from lib.classes import ControllerRumbleMode, ControllerRumblePattern
@@ -17,12 +17,12 @@ class GameCommands:
     return cmd.sequence(
       cmd.parallel(
         self._robot.driveSubsystem.alignToTargetCommand(
-          lambda: self._robot.localizationSubsystem.getPose(), 
-          lambda: self._robot.localizationSubsystem.getTargetHeading()
+          self._robot.localizationSubsystem.getPose, 
+          self._robot.localizationSubsystem.getTargetHeading
         ),
         self.rumbleControllersCommand(ControllerRumbleMode.Operator, ControllerRumblePattern.Short),
         cmd.sequence(
-          cmd.waitUntil(lambda: self._robot.driveSubsystem.isAlignedToTarget()),
+          cmd.waitUntil(self._robot.driveSubsystem.isAlignedToTarget),
           self.rumbleControllersCommand(ControllerRumbleMode.Driver, ControllerRumblePattern.Short)
         )
       )

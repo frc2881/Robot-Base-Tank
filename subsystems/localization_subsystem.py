@@ -37,7 +37,6 @@ class LocalizationSubsystem(Subsystem):
     self._targetPose = Pose3d()
     self._targetInfo = TargetInfo(0, 0, 0)
     self._currentAlliance = None
-    self._isVisionActive = False
 
     SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
     SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
@@ -65,12 +64,10 @@ class LocalizationSubsystem(Subsystem):
               estimatedRobotPose.timestampSeconds,
               constants.Sensors.Pose.kMultiTagStandardDeviations
             )
-            self._isVisionActive = True
           else:
             for target in estimatedRobotPose.targetsUsed:
               if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Sensors.Pose.kMaxPoseAmbiguity):
                 self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Sensors.Pose.kSingleTagStandardDeviations)
-                self._isVisionActive = True
                 break
     self._pose = self._poseEstimator.getEstimatedPosition()
 
@@ -78,8 +75,7 @@ class LocalizationSubsystem(Subsystem):
     return self._pose
 
   def resetPose(self, pose: Pose2d) -> None:
-    if not self._isVisionActive:
-      self._poseEstimator.resetPose(pose)
+    self._poseEstimator.resetPose(pose)
 
   def hasVisionTargets(self) -> bool:
     for poseSensor in self._poseSensors:

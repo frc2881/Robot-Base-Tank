@@ -2,20 +2,20 @@ from typing import TYPE_CHECKING
 from wpimath import units
 from wpilib import SmartDashboard
 from rev import SparkBase, SparkBaseConfig, SparkLowLevel, SparkMax, SparkRelativeEncoder
-from lib.classes import DifferentialDriveModuleConfig, MotorIdleMode
+from lib.classes import DifferentialModuleConfig, MotorIdleMode
 from lib import utils, logger
 if TYPE_CHECKING: import constants
 
-class DifferentialDriveModule:
+class DifferentialModule:
   def __init__(
     self,
-    config: DifferentialDriveModuleConfig,
-    constants: "constants.Subsystems.Drive.DifferentialDriveModule"
+    config: DifferentialModuleConfig,
+    constants: "constants.Subsystems.Drive.DifferentialModule"
   ) -> None:
     self._config = config
     self._constants = constants
 
-    self._baseKey = f'Robot/Drive/DifferentialDriveModules/{self._config.location.name}'
+    self._baseKey = f'Robot/Drive/DifferentialModules/{self._config.location.name}'
     self._drivingTargetSpeed: units.meters_per_second = 0
  
     self._drivingMotor = SparkMax(self._config.drivingMotorCANId, SparkLowLevel.MotorType.kBrushless)

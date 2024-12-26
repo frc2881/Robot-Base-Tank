@@ -4,12 +4,15 @@ from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Pose3d, Tra
 from wpimath.kinematics import DifferentialDriveKinematics
 from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
 from navx import AHRS
-from photonlibpy.photonPoseEstimator import PoseStrategy
+from pathplannerlib.config import RobotConfig
 from pathplannerlib.controller import PIDConstants as PathPlannerPIDConstants
 from pathplannerlib.pathfinding import PathConstraints
-from lib.classes import PIDConstants, ChassisLocation, DifferentialDriveModuleConfig, PoseSensorConfig
+from photonlibpy.photonPoseEstimator import PoseStrategy
+from lib import logger, utils
+from lib.classes import PIDConstants, ChassisLocation, DifferentialModuleConfig, PoseSensorConfig
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2024Crescendo)
+PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
 
 class Subsystems:
   class Drive:
@@ -32,22 +35,23 @@ class Subsystems:
     kTargetAlignmentCarpetFrictionCoeff: float = 0.2
     kTargetAlignmentHeadingInversion: units.degrees = 180.0
 
+    kPathPlannerRobotConfig = PATHPLANNER_ROBOT_CONFIG
     kPathFollowerTranslationPIDConstants = PathPlannerPIDConstants(5.0, 0, 0)
     kPathFollowerRotationPIDConstants = PathPlannerPIDConstants(5.0, 0, 0)
     kPathFindingConstraints = PathConstraints(2.4, 1.6, units.degreesToRadians(540), units.degreesToRadians(720))
 
-    kDifferentialDriveModuleConfigs: tuple[DifferentialDriveModuleConfig, ...] = (
-      DifferentialDriveModuleConfig(ChassisLocation.FrontLeft, 2, None, True),
-      DifferentialDriveModuleConfig(ChassisLocation.Left, 3, 2, True),
-      DifferentialDriveModuleConfig(ChassisLocation.RearLeft, 4, 2, True),
-      DifferentialDriveModuleConfig(ChassisLocation.FrontRight, 5, None, False),
-      DifferentialDriveModuleConfig(ChassisLocation.Right, 6, 5, False),
-      DifferentialDriveModuleConfig(ChassisLocation.RearRight, 7, 5, False)
+    kDifferentialModuleConfigs: tuple[DifferentialModuleConfig, ...] = (
+      DifferentialModuleConfig(ChassisLocation.FrontLeft, 2, None, True),
+      DifferentialModuleConfig(ChassisLocation.Left, 3, 2, True),
+      DifferentialModuleConfig(ChassisLocation.RearLeft, 4, 2, True),
+      DifferentialModuleConfig(ChassisLocation.FrontRight, 5, None, False),
+      DifferentialModuleConfig(ChassisLocation.Right, 6, 5, False),
+      DifferentialModuleConfig(ChassisLocation.RearRight, 7, 5, False)
     )
 
     kDifferentialDriveKinematics = DifferentialDriveKinematics(kTrackWidth)
 
-    class DifferentialDriveModule:
+    class DifferentialModule:
       kWheelDiameter: units.meters = units.inchesToMeters(3.0)
       kDrivingMotorReduction: float = 8.46
       kDrivingEncoderPositionConversionFactor: float = (kWheelDiameter * math.pi) / kDrivingMotorReduction
@@ -78,16 +82,14 @@ class Sensors:
 
   class Camera:
     kStreams: dict[str, str] = {
-     # "Front": "http://10.28.81.6:1184/?action=stream",
-     # "Driver": "http://10.28.81.6:1188/?action=stream"
+      # "Front": "http://10.28.81.6:1184/?action=stream",
+      # "Driver": "http://10.28.81.6:1188/?action=stream"
     }
 
 class Controllers:
   kDriverControllerPort: int = 0
   kOperatorControllerPort: int = 1
   kInputDeadband: units.percent = 0.1
-
-APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2024Crescendo)
 
 class Game:
   class Commands:
@@ -99,7 +101,7 @@ class Game:
     kWidth = APRIL_TAG_FIELD_LAYOUT.getFieldWidth()
     kBounds = (Translation2d(0, 0), Translation2d(kLength, kWidth))
 
-    class Targets:  
+    class Targets:
       kBlueTarget = APRIL_TAG_FIELD_LAYOUT.getTagPose(7) or Pose3d()
       kRedTarget = APRIL_TAG_FIELD_LAYOUT.getTagPose(4) or Pose3d()
 

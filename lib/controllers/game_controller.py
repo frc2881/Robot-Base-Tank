@@ -1,8 +1,8 @@
 import math
-from wpimath import units
-from wpilib import XboxController
 from commands2 import Command, cmd
 from commands2.button import CommandXboxController, Trigger
+from wpimath import units
+from wpilib import XboxController
 from lib import utils
 from lib.classes import ControllerRumblePattern
 
@@ -43,19 +43,19 @@ class GameController(CommandXboxController):
     match pattern:
       case ControllerRumblePattern.Short:
         return cmd.run(
-          lambda: self._hid.setRumble(XboxController.RumbleType.kBothRumble, 1)
+          lambda: self.setRumble(XboxController.RumbleType.kBothRumble, 1)
         ).withTimeout(
           0.5
         ).finallyDo(
-          lambda end: self._hid.setRumble(XboxController.RumbleType.kBothRumble, 0)
+          lambda end: self.setRumble(XboxController.RumbleType.kBothRumble, 0)
         )
       case ControllerRumblePattern.Long:
         return cmd.run(
-          lambda: self._hid.setRumble(XboxController.RumbleType.kBothRumble, 1)
+          lambda: self.setRumble(XboxController.RumbleType.kBothRumble, 1)
         ).withTimeout(
           1.5
         ).finallyDo(
-          lambda end: self._hid.setRumble(XboxController.RumbleType.kBothRumble, 0)
+          lambda end: self.setRumble(XboxController.RumbleType.kBothRumble, 0)
         )
       case _:
         return cmd.none()
