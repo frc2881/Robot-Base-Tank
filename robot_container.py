@@ -1,7 +1,6 @@
 from commands2 import Command, cmd
 from wpilib import DriverStation, SendableChooser, SmartDashboard
 from pathplannerlib.auto import AutoBuilder
-from pathplannerlib.controller import PPLTVController
 from lib import logger, utils
 from lib.classes import Alliance
 from lib.controllers.game_controller import GameController
@@ -32,15 +31,14 @@ class RobotContainer:
     self.localizationSubsystem = LocalizationSubsystem(
       self.poseSensors,
       self.gyroSensor.getRotation,
-      self.driveSubsystem.getLeftEncoderPosition,
-      self.driveSubsystem.getRightEncoderPosition
+      self.driveSubsystem.getDifferentialModulePositions
     )
     AutoBuilder.configure(
       self.localizationSubsystem.getPose, 
       self.localizationSubsystem.resetPose, 
       self.driveSubsystem.getChassisSpeeds, 
       self.driveSubsystem.drive,
-      PPLTVController(0.02),
+      constants.Subsystems.Drive.kPathPlannerController,
       constants.Subsystems.Drive.kPathPlannerRobotConfig,
       lambda: utils.getAlliance() == Alliance.Red,
       self.driveSubsystem

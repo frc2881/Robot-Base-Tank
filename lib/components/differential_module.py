@@ -1,19 +1,15 @@
-from typing import TYPE_CHECKING
 from wpimath import units
 from wpilib import SmartDashboard
-from rev import SparkBase, SparkBaseConfig, SparkLowLevel, SparkMax, SparkRelativeEncoder
-from lib.classes import DifferentialModuleConfig, MotorIdleMode
-from lib import utils, logger
-if TYPE_CHECKING: import constants
+from rev import SparkBase, SparkBaseConfig, SparkLowLevel, SparkMax
+from ..classes import DifferentialModuleConfig, MotorIdleMode
+from .. import utils, logger
 
 class DifferentialModule:
   def __init__(
     self,
-    config: DifferentialModuleConfig,
-    constants: "constants.Subsystems.Drive.DifferentialModule"
+    config: DifferentialModuleConfig
   ) -> None:
     self._config = config
-    self._constants = constants
 
     self._baseKey = f'Robot/Drive/DifferentialModules/{self._config.location.name}'
     self._drivingTargetSpeed: units.meters_per_second = 0
@@ -22,12 +18,12 @@ class DifferentialModule:
     self._drivingMotorConfig = SparkBaseConfig()
     (self._drivingMotorConfig
       .setIdleMode(SparkBaseConfig.IdleMode.kBrake)
-      .smartCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
-      .secondaryCurrentLimit(self._constants.kDrivingMotorCurrentLimit)
+      .smartCurrentLimit(self._config.constants.drivingMotorCurrentLimit)
+      .secondaryCurrentLimit(self._config.constants.drivingMotorCurrentLimit)
       .inverted(self._config.isInverted))
     (self._drivingMotorConfig.encoder
-      .positionConversionFactor(self._constants.kDrivingEncoderPositionConversionFactor)
-      .velocityConversionFactor(self._constants.kDrivingEncoderVelocityConversionFactor))
+      .positionConversionFactor(self._config.constants.drivingEncoderPositionConversionFactor)
+      .velocityConversionFactor(self._config.constants.drivingEncoderVelocityConversionFactor))
     if self._config.leaderMotorCANId is not None:
       self._drivingMotorConfig.follow(self._config.leaderMotorCANId)
     utils.setSparkConfig(
@@ -43,15 +39,15 @@ class DifferentialModule:
 
     utils.addRobotPeriodic(self._updateTelemetry)
 
-  def getMotor(self) -> SparkMax:
+  def getMotorController(self) -> SparkMax:
     return self._drivingMotor
-  
-  def getEncoder(self) -> SparkRelativeEncoder:
-    return self._drivingEncoder
 
   def getPosition(self) -> float:
     return self._drivingEncoder.getPosition()
-
+  
+  def getVelocity(self) -> float:
+    return self._drivingEncoder.getVelocity()
+  
   def setIdleMode(self, motorIdleMode: MotorIdleMode) -> None:
     idleMode = SparkBaseConfig.IdleMode.kCoast if motorIdleMode == MotorIdleMode.Coast else SparkBaseConfig.IdleMode.kBrake
     utils.setSparkConfig(self._drivingMotor.configure(SparkBaseConfig().setIdleMode(idleMode), SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kNoPersistParameters))
@@ -62,3 +58,4 @@ class DifferentialModule:
   def _updateTelemetry(self) -> None:
     SmartDashboard.putNumber(f'{self._baseKey}/Driving/Speed/Target', self._drivingTargetSpeed)
     SmartDashboard.putNumber(f'{self._baseKey}/Driving/Speed/Actual', self._drivingEncoder.getVelocity())
+    SmartDashboard.putNumber(f'{self._baseKey}/Driving/Position', self._drivingEncoder.getPosition())

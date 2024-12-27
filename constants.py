@@ -5,11 +5,11 @@ from wpimath.kinematics import DifferentialDriveKinematics
 from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
 from navx import AHRS
 from pathplannerlib.config import RobotConfig
-from pathplannerlib.controller import PIDConstants as PathPlannerPIDConstants
+from pathplannerlib.controller import PPLTVController
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import PIDConstants, ChassisLocation, DifferentialModuleConfig, PoseSensorConfig
+from lib.classes import PIDConstants, DifferentialModuleConstants, DifferentialModuleConfig, DifferentialModuleLocation, PoseSensorConfig, PoseSensorLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2024Crescendo)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
@@ -36,27 +36,32 @@ class Subsystems:
     kTargetAlignmentHeadingInversion: units.degrees = 180.0
 
     kPathPlannerRobotConfig = PATHPLANNER_ROBOT_CONFIG
-    kPathFollowerTranslationPIDConstants = PathPlannerPIDConstants(5.0, 0, 0)
-    kPathFollowerRotationPIDConstants = PathPlannerPIDConstants(5.0, 0, 0)
+    kPathPlannerController = PPLTVController(0.02)
     kPathFindingConstraints = PathConstraints(2.4, 1.6, units.degreesToRadians(540), units.degreesToRadians(720))
 
+    _wheelDiameter: units.meters = units.inchesToMeters(3.0)
+    _drivingMotorReduction: float = 8.46
+    _differentialModuleConstants = DifferentialModuleConstants(
+      drivingMotorCurrentLimit = 50,
+      drivingEncoderPositionConversionFactor = (_wheelDiameter * math.pi) / _drivingMotorReduction,
+      drivingEncoderVelocityConversionFactor = ((_wheelDiameter * math.pi) / _drivingMotorReduction) / 60.0
+    )
+
     kDifferentialModuleConfigs: tuple[DifferentialModuleConfig, ...] = (
-      DifferentialModuleConfig(ChassisLocation.FrontLeft, 2, None, True),
-      DifferentialModuleConfig(ChassisLocation.Left, 3, 2, True),
-      DifferentialModuleConfig(ChassisLocation.RearLeft, 4, 2, True),
-      DifferentialModuleConfig(ChassisLocation.FrontRight, 5, None, False),
-      DifferentialModuleConfig(ChassisLocation.Right, 6, 5, False),
-      DifferentialModuleConfig(ChassisLocation.RearRight, 7, 5, False)
+      DifferentialModuleConfig(DifferentialModuleLocation.LeftFront, 2, None, True, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.LeftCenter, 3, 2, True, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.LeftRear, 4, 2, True, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.RightFront, 5, None, False, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.RightCenter, 6, 5, False, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.RightRear, 7, 5, False, _differentialModuleConstants)
     )
 
     kDifferentialDriveKinematics = DifferentialDriveKinematics(kTrackWidth)
 
-    class DifferentialModule:
-      kWheelDiameter: units.meters = units.inchesToMeters(3.0)
-      kDrivingMotorReduction: float = 8.46
-      kDrivingEncoderPositionConversionFactor: float = (kWheelDiameter * math.pi) / kDrivingMotorReduction
-      kDrivingEncoderVelocityConversionFactor: float = ((kWheelDiameter * math.pi) / kDrivingMotorReduction) / 60.0
-      kDrivingMotorCurrentLimit: int = 50
+  class Localization:
+    kSingleTagStandardDeviations: tuple[float, ...] = (1.0, 1.0, 2.0)
+    kMultiTagStandardDeviations: tuple[float, ...] = (0.5, 0.5, 1.0)
+    kMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors:
   class Gyro:
@@ -64,20 +69,16 @@ class Sensors:
       kComType = AHRS.NavXComType.kUSB1
 
   class Pose:
-    kPoseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
-    kFallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
-    kSingleTagStandardDeviations: tuple[float, ...] = (1.0, 1.0, 2.0)
-    kMultiTagStandardDeviations: tuple[float, ...] = (0.5, 0.5, 1.0)
-    kMaxPoseAmbiguity: units.percent = 0.2
-
+    _poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
+    _fallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
-      # PoseSensorConfig(
-      #   ChassisLocation.Front.name,
-      #   Transform3d(
-      #     Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
-      #     Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-22.3), units.degreesToRadians(0.0))
-      #   ), kPoseStrategy, kFallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
-      # ),
+      PoseSensorConfig(
+        PoseSensorLocation.Front,
+        Transform3d(
+          Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-22.3), units.degreesToRadians(0.0))
+        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+      ),
     )
 
   class Camera:

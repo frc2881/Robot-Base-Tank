@@ -7,9 +7,9 @@ from wpimath import units
 from wpimath.controller import PIDController
 from wpimath.filter import SlewRateLimiter
 from wpimath.geometry import Pose2d
-from wpimath.kinematics import ChassisSpeeds, DifferentialDriveWheelSpeeds
+from wpimath.kinematics import ChassisSpeeds, DifferentialDriveWheelPositions, DifferentialDriveWheelSpeeds
 from lib import utils, logger
-from lib.classes import ChassisLocation, MotorIdleMode, SpeedMode, DriveOrientation, OptionState, LockState
+from lib.classes import DifferentialModuleLocation, MotorIdleMode, SpeedMode, DriveOrientation, OptionState
 from lib.components.differential_module import DifferentialModule
 import constants
 
@@ -23,13 +23,12 @@ class DriveSubsystem(Subsystem):
     
     self._constants = constants.Subsystems.Drive
 
-    self._differentialModules = tuple(DifferentialModule(c, self._constants.DifferentialModule) for c in self._constants.kDifferentialModuleConfigs)
+    self._differentialModules = tuple(DifferentialModule(c) for c in self._constants.kDifferentialModuleConfigs)
+    
     self._drivetrain = DifferentialDrive(
-      self._differentialModules[ChassisLocation.FrontLeft.value].getMotor(),
-      self._differentialModules[ChassisLocation.FrontRight.value].getMotor()
+      self._differentialModules[DifferentialModuleLocation.LeftFront].getMotorController(),
+      self._differentialModules[DifferentialModuleLocation.RightFront].getMotorController()
     )
-    self._leftEncoder = self._differentialModules[ChassisLocation.RearLeft.value].getEncoder()
-    self._rightEncoder = self._differentialModules[ChassisLocation.RearRight.value].getEncoder()
 
     self._isDriftCorrectionActive: bool = False
     self._driftCorrectionThetaController = PIDController(
@@ -109,18 +108,18 @@ class DriveSubsystem(Subsystem):
   def _drive(self, speed: float, rotation: float) -> None:
     self._drivetrain.arcadeDrive(speed, rotation, True)
 
-  def getDistance(self) -> float:
-    return self._leftEncoder.getPosition()
-
-  def getLeftEncoderPosition(self) -> float:
-    return self._leftEncoder.getPosition()
-  
-  def getRightEncoderPosition(self) -> float:
-    return self._rightEncoder.getPosition()
+  def getDifferentialModulePositions(self) -> DifferentialDriveWheelPositions:
+    positions = DifferentialDriveWheelPositions()
+    positions.left = self._differentialModules[DifferentialModuleLocation.LeftRear].getPosition()
+    positions.right = self._differentialModules[DifferentialModuleLocation.RightRear].getPosition()
+    return positions
 
   def getChassisSpeeds(self) -> ChassisSpeeds:
     return self._constants.kDifferentialDriveKinematics.toChassisSpeeds(
-      DifferentialDriveWheelSpeeds(self._leftEncoder.getVelocity(), self._rightEncoder.getVelocity())
+      DifferentialDriveWheelSpeeds(
+        self._differentialModules[DifferentialModuleLocation.LeftRear].getVelocity(), 
+        self._differentialModules[DifferentialModuleLocation.RightRear].getVelocity()
+      )
     )
 
   def _setIdleMode(self, idleMode: MotorIdleMode) -> None:
@@ -160,6 +159,4 @@ class DriveSubsystem(Subsystem):
   
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Drive/IsAlignedToTarget", self._isAlignedToTarget)
-    SmartDashboard.putNumber("Robot/Drive/LeftEncoder", self._leftEncoder.getPosition())
-    SmartDashboard.putNumber("Robot/Drive/RightEncoder", self._rightEncoder.getPosition())
   

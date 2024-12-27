@@ -1,11 +1,11 @@
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 from dataclasses import dataclass
 from wpimath import units
 from wpimath.geometry import Translation2d, Transform3d
 from robotpy_apriltag import AprilTagFieldLayout
 from photonlibpy.photonPoseEstimator import PoseStrategy
 
-class Alliance(Enum):
+class Alliance(IntEnum):
   Red = 0
   Blue = 1
 
@@ -24,24 +24,6 @@ class OptionState(Enum):
   Enabled = auto()
   Disabled = auto()
 
-class LockState(Enum):
-  Unlocked = auto()
-  Locked = auto()
-
-class SpeedMode(Enum):
-  Competition = auto()
-  Demo = auto()
-
-class ChassisLocation(Enum):
-  FrontLeft = 0
-  FrontRight = 1
-  RearLeft = 2
-  RearRight = 3
-  Front = 4
-  Rear = 5
-  Left = 6
-  Right = 7
-
 class MotorDirection(Enum):
   Forward = auto()
   Reverse = auto()
@@ -59,6 +41,14 @@ class DriveOrientation(Enum):
   Field = auto()
   Robot = auto()
 
+class SpeedMode(Enum):
+  Competition = auto()
+  Demo = auto()
+
+class LockState(Enum):
+  Unlocked = auto()
+  Locked = auto()
+
 class ControllerRumbleMode(Enum):
   Both = auto()
   Driver = auto()
@@ -68,6 +58,11 @@ class ControllerRumblePattern(Enum):
   Short = auto()
   Long = auto()
 
+class LightsMode(Enum):
+  Default = auto()
+  RobotNotReady = auto()
+  VisionNotReady = auto()
+
 @dataclass(frozen=True)
 class PIDConstants:
   P: float
@@ -75,24 +70,51 @@ class PIDConstants:
   D: float
   FF: float
 
+class SwerveModuleLocation(IntEnum):
+  FrontLeft = 0,
+  FrontRight = 1,
+  RearLeft = 2,
+  RearRight = 3
+
 @dataclass(frozen=True)
 class SwerveModuleConfig:
-  location: ChassisLocation
+  location: SwerveModuleLocation
   drivingMotorCANId: int
   turningMotorCANId: int
   turningOffset: units.radians
   translation: Translation2d
 
+class DifferentialModuleLocation(IntEnum):
+  LeftFront = 0,
+  LeftCenter = 1,
+  LeftRear = 2,
+  RightFront = 3,
+  RightCenter = 4,
+  RightRear = 5
+
+@dataclass(frozen=True)
+class DifferentialModuleConstants:
+  drivingMotorCurrentLimit: int
+  drivingEncoderPositionConversionFactor: float
+  drivingEncoderVelocityConversionFactor: float
+
 @dataclass(frozen=True)
 class DifferentialModuleConfig:
-  location: ChassisLocation
+  location: DifferentialModuleLocation
   drivingMotorCANId: int
   leaderMotorCANId: int | None
   isInverted: bool
+  constants: DifferentialModuleConstants
+
+class PoseSensorLocation(Enum):
+  Front = auto(),
+  Rear = auto(),
+  Left = auto(),
+  Right = auto()
 
 @dataclass(frozen=True)
 class PoseSensorConfig:
-  cameraName: str
+  location: PoseSensorLocation
   cameraTransform: Transform3d
   poseStrategy: PoseStrategy
   fallbackPoseStrategy: PoseStrategy
