@@ -1,7 +1,7 @@
 from wpilib import SmartDashboard
 from photonlibpy.targeting import PhotonTrackedTarget
 from photonlibpy.photonCamera import PhotonCamera
-from .. import utils, logger
+from .. import logger, utils
 
 class ObjectSensor:
   def __init__(
@@ -10,7 +10,7 @@ class ObjectSensor:
     ) -> None:
     self._cameraName = cameraName
     
-    self._baseKey = f'Robot/Sensor/Object/{self._cameraName}'
+    self._baseKey = f'Robot/Sensors/Object/{self._cameraName}'
     self._photonCamera = PhotonCamera(cameraName)
     self._hasTarget = False
 

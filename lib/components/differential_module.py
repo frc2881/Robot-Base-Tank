@@ -1,7 +1,7 @@
 from wpimath import units
 from wpilib import SmartDashboard
-from rev import SparkBase, SparkBaseConfig, SparkLowLevel, SparkMax
-from ..classes import DifferentialModuleConfig, MotorIdleMode
+from rev import SparkBase, SparkBaseConfig, SparkLowLevel, SparkMax, SparkFlex
+from ..classes import DifferentialModuleConfig, MotorIdleMode, MotorControllerType
 from .. import utils, logger
 
 class DifferentialModule:
@@ -11,10 +11,13 @@ class DifferentialModule:
   ) -> None:
     self._config = config
 
-    self._baseKey = f'Robot/Drive/DifferentialModules/{self._config.location.name}'
+    self._baseKey = f'Robot/Drive/Modules/{self._config.location.name}'
     self._drivingTargetSpeed: units.meters_per_second = 0
  
-    self._drivingMotor = SparkMax(self._config.drivingMotorCANId, SparkLowLevel.MotorType.kBrushless)
+    if self._config.constants.drivingMotorControllerType == MotorControllerType.SparkFlex:
+      self._drivingMotor = SparkFlex(self._config.drivingMotorCANId, SparkLowLevel.MotorType.kBrushless)
+    else: 
+      self._drivingMotor = SparkMax(self._config.drivingMotorCANId, SparkLowLevel.MotorType.kBrushless)
     self._drivingMotorConfig = SparkBaseConfig()
     (self._drivingMotorConfig
       .setIdleMode(SparkBaseConfig.IdleMode.kBrake)
@@ -23,7 +26,7 @@ class DifferentialModule:
       .inverted(self._config.isInverted))
     (self._drivingMotorConfig.encoder
       .positionConversionFactor(self._config.constants.drivingEncoderPositionConversionFactor)
-      .velocityConversionFactor(self._config.constants.drivingEncoderVelocityConversionFactor))
+      .velocityConversionFactor(self._config.constants.drivingEncoderPositionConversionFactor / 60.0))
     if self._config.leaderMotorCANId is not None:
       self._drivingMotorConfig.follow(self._config.leaderMotorCANId)
     utils.setSparkConfig(

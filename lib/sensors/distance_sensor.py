@@ -1,7 +1,7 @@
 from ntcore import NetworkTableInstance, PubSubOptions
 from wpilib import SmartDashboard
 from wpimath import units
-from .. import utils, logger
+from .. import logger, utils
 
 class DistanceSensor:
   def __init__(
@@ -14,7 +14,7 @@ class DistanceSensor:
     self._minTargetDistance = minTargetDistance
     self._maxTargetDistance = maxTargetDistance
     
-    self._baseKey = f'Robot/Sensor/Distance/{self._sensorName}'
+    self._baseKey = f'Robot/Sensors/Distance/{self._sensorName}'
     self._valueTopic = NetworkTableInstance.getDefault().getTable("SmartDashboard").getDoubleTopic(f'{self._baseKey}/Value').subscribe(-1.0, PubSubOptions(periodic=0.01))
     self._isTriggered: bool = False
 

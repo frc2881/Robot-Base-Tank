@@ -1,3 +1,4 @@
+from typing import NamedTuple
 from enum import Enum, IntEnum, auto
 from dataclasses import dataclass
 from wpimath import units
@@ -63,12 +64,10 @@ class LightsMode(Enum):
   RobotNotReady = auto()
   VisionNotReady = auto()
 
-@dataclass(frozen=True)
-class PIDConstants:
+class PID(NamedTuple):
   P: float
   I: float
   D: float
-  FF: float
 
 class SwerveModuleLocation(IntEnum):
   FrontLeft = 0,
@@ -76,13 +75,24 @@ class SwerveModuleLocation(IntEnum):
   RearLeft = 2,
   RearRight = 3
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
+class SwerveModuleConstants:
+  drivingMotorControllerType: MotorControllerType
+  drivingMotorCurrentLimit: int
+  drivingMotorPID: PID
+  drivingEncoderPositionConversionFactor: float
+  turningMotorCurrentLimit: int
+  turningMotorPID: PID
+  turningEncoderPositionConversionFactor: float
+
+@dataclass(frozen=True, slots=True)
 class SwerveModuleConfig:
   location: SwerveModuleLocation
   drivingMotorCANId: int
   turningMotorCANId: int
   turningOffset: units.radians
   translation: Translation2d
+  constants: SwerveModuleConstants
 
 class DifferentialModuleLocation(IntEnum):
   LeftFront = 0,
@@ -92,13 +102,13 @@ class DifferentialModuleLocation(IntEnum):
   RightCenter = 4,
   RightRear = 5
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DifferentialModuleConstants:
+  drivingMotorControllerType: MotorControllerType
   drivingMotorCurrentLimit: int
   drivingEncoderPositionConversionFactor: float
-  drivingEncoderVelocityConversionFactor: float
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DifferentialModuleConfig:
   location: DifferentialModuleLocation
   drivingMotorCANId: int
@@ -106,13 +116,17 @@ class DifferentialModuleConfig:
   isInverted: bool
   constants: DifferentialModuleConstants
 
+class DifferentialDriveModulePositions(NamedTuple):
+  left: float
+  right: float
+
 class PoseSensorLocation(Enum):
   Front = auto(),
   Rear = auto(),
   Left = auto(),
   Right = auto()
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PoseSensorConfig:
   location: PoseSensorLocation
   cameraTransform: Transform3d
@@ -120,7 +134,7 @@ class PoseSensorConfig:
   fallbackPoseStrategy: PoseStrategy
   aprilTagFieldLayout: AprilTagFieldLayout
 
-@dataclass
+@dataclass(frozen=False, slots=True)
 class TargetInfo:
   distance: units.meters
   heading: units.degrees

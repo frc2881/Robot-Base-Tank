@@ -1,8 +1,6 @@
 from commands2 import Command, cmd
 from wpilib import DriverStation, SendableChooser, SmartDashboard
-from pathplannerlib.auto import AutoBuilder
 from lib import logger, utils
-from lib.classes import Alliance
 from lib.controllers.game_controller import GameController
 from lib.sensors.gyro_sensor_navx2 import GyroSensor_NAVX2
 from lib.sensors.pose_sensor import PoseSensor
@@ -24,25 +22,11 @@ class RobotContainer:
   def _setupSensors(self) -> None:
     self.gyroSensor = GyroSensor_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
-    SmartDashboard.putString("Robot/Sensor/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
+    SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
     
   def _setupSubsystems(self) -> None:
     self.driveSubsystem = DriveSubsystem(self.gyroSensor.getHeading)
-    self.localizationSubsystem = LocalizationSubsystem(
-      self.poseSensors,
-      self.gyroSensor.getRotation,
-      self.driveSubsystem.getDifferentialModulePositions
-    )
-    AutoBuilder.configure(
-      self.localizationSubsystem.getPose, 
-      self.localizationSubsystem.resetPose, 
-      self.driveSubsystem.getChassisSpeeds, 
-      self.driveSubsystem.drive,
-      constants.Subsystems.Drive.kPathPlannerController,
-      constants.Subsystems.Drive.kPathPlannerRobotConfig,
-      lambda: utils.getAlliance() == Alliance.Red,
-      self.driveSubsystem
-    )
+    self.localizationSubsystem = LocalizationSubsystem(self.poseSensors, self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions)
     
   def _setupControllers(self) -> None:
     self.driverController = GameController(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)
@@ -52,9 +36,6 @@ class RobotContainer:
   def _setupCommands(self) -> None:
     self.gameCommands = GameCommands(self)
     self.autoCommands = AutoCommands(self)
-    self._autoCommandChooser = SendableChooser()
-    self.autoCommands.addAutoOptions(self._autoCommandChooser)
-    SmartDashboard.putData("Robot/Auto/Command", self._autoCommandChooser)
 
   def _setupTriggers(self) -> None:
     self.driveSubsystem.setDefaultCommand(
@@ -102,7 +83,7 @@ class RobotContainer:
     SmartDashboard.putBoolean("Robot/HasInitialZeroResets", self._robotHasInitialZeroResets())
 
   def getAutoCommand(self) -> Command:
-    return self._autoCommandChooser.getSelected()()
+    return self.autoCommands.getSelected()
 
   def autoInit(self) -> None:
     self.resetRobot()

@@ -1,7 +1,7 @@
 from wpilib import SmartDashboard
 from photonlibpy.photonCamera import PhotonCamera
 from photonlibpy.photonPoseEstimator import PhotonPoseEstimator, EstimatedRobotPose
-from .. import utils, logger
+from .. import logger, utils
 from ..classes import PoseSensorConfig
 
 class PoseSensor:
@@ -9,7 +9,7 @@ class PoseSensor:
       self, 
       config: PoseSensorConfig
     ) -> None:
-    self._baseKey = f'Robot/Sensor/Pose/{config.location.name}'
+    self._baseKey = f'Robot/Sensors/Pose/{config.location.name}'
     self._photonCamera = PhotonCamera(config.location.name)
     self._photonCamera.setDriverMode(False)
     self._photonPoseEstimator = PhotonPoseEstimator(

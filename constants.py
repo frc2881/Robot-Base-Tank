@@ -9,7 +9,7 @@ from pathplannerlib.controller import PPLTVController
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import PIDConstants, DifferentialModuleConstants, DifferentialModuleConfig, DifferentialModuleLocation, PoseSensorConfig, PoseSensorLocation
+from lib.classes import PID, MotorControllerType, DifferentialModuleConstants, DifferentialModuleConfig, DifferentialModuleLocation, PoseSensorConfig, PoseSensorLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2024Crescendo)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
@@ -25,11 +25,11 @@ class Subsystems:
     kInputLimitDemo: units.percent = 0.5
     kInputRateLimitDemo: units.percent = 0.33
 
-    kDriftCorrectionThetaControllerPIDConstants = PIDConstants(0.01, 0, 0, 0)
+    kDriftCorrectionThetaControllerPID = PID(0.01, 0, 0)
     kDriftCorrectionThetaControllerPositionTolerance: float = 0.5
     kDriftCorrectionThetaControllerVelocityTolerance: float = 0.5
 
-    kTargetAlignmentThetaControllerPIDConstants = PIDConstants(0.075, 0, 0, 0)
+    kTargetAlignmentThetaControllerPID = PID(0.075, 0, 0)
     kTargetAlignmentThetaControllerPositionTolerance: float = 1.0
     kTargetAlignmentThetaControllerVelocityTolerance: float = 1.0
     kTargetAlignmentCarpetFrictionCoeff: float = 0.2
@@ -42,9 +42,9 @@ class Subsystems:
     _wheelDiameter: units.meters = units.inchesToMeters(3.0)
     _drivingMotorReduction: float = 8.46
     _differentialModuleConstants = DifferentialModuleConstants(
+      drivingMotorControllerType = MotorControllerType.SparkMax,
       drivingMotorCurrentLimit = 50,
-      drivingEncoderPositionConversionFactor = (_wheelDiameter * math.pi) / _drivingMotorReduction,
-      drivingEncoderVelocityConversionFactor = ((_wheelDiameter * math.pi) / _drivingMotorReduction) / 60.0
+      drivingEncoderPositionConversionFactor = (_wheelDiameter * math.pi) / _drivingMotorReduction
     )
 
     kDifferentialModuleConfigs: tuple[DifferentialModuleConfig, ...] = (
@@ -56,7 +56,7 @@ class Subsystems:
       DifferentialModuleConfig(DifferentialModuleLocation.RightRear, 7, 5, False, _differentialModuleConstants)
     )
 
-    kDifferentialDriveKinematics = DifferentialDriveKinematics(kTrackWidth)
+    kDriveKinematics = DifferentialDriveKinematics(kTrackWidth)
 
   class Localization:
     kSingleTagStandardDeviations: tuple[float, ...] = (1.0, 1.0, 2.0)
@@ -72,13 +72,13 @@ class Sensors:
     _poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
     _fallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
-      PoseSensorConfig(
-        PoseSensorLocation.Front,
-        Transform3d(
-          Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-22.3), units.degreesToRadians(0.0))
-        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
-      ),
+      # PoseSensorConfig(
+      #   PoseSensorLocation.Front,
+      #   Transform3d(
+      #     Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
+      #     Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-22.3), units.degreesToRadians(0.0))
+      #   ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+      # ),
     )
 
   class Camera:

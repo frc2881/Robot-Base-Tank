@@ -7,9 +7,9 @@ from wpimath import units
 from wpimath.controller import PIDController
 from wpimath.filter import SlewRateLimiter
 from wpimath.geometry import Pose2d
-from wpimath.kinematics import ChassisSpeeds, DifferentialDriveWheelPositions, DifferentialDriveWheelSpeeds
+from wpimath.kinematics import ChassisSpeeds, DifferentialDriveWheelSpeeds
 from lib import utils, logger
-from lib.classes import DifferentialModuleLocation, MotorIdleMode, SpeedMode, DriveOrientation, OptionState
+from lib.classes import DifferentialModuleLocation, DifferentialDriveModulePositions, MotorIdleMode, SpeedMode, DriveOrientation, OptionState
 from lib.components.differential_module import DifferentialModule
 import constants
 
@@ -31,11 +31,7 @@ class DriveSubsystem(Subsystem):
     )
 
     self._isDriftCorrectionActive: bool = False
-    self._driftCorrectionThetaController = PIDController(
-      self._constants.kDriftCorrectionThetaControllerPIDConstants.P, 
-      self._constants.kDriftCorrectionThetaControllerPIDConstants.I, 
-      self._constants.kDriftCorrectionThetaControllerPIDConstants.D
-    )
+    self._driftCorrectionThetaController = PIDController(*self._constants.kDriftCorrectionThetaControllerPID)
     self._driftCorrectionThetaController.enableContinuousInput(-180.0, 180.0)
     self._driftCorrectionThetaController.setTolerance(
       self._constants.kDriftCorrectionThetaControllerPositionTolerance, 
@@ -43,11 +39,7 @@ class DriveSubsystem(Subsystem):
     )
 
     self._isAlignedToTarget: bool = False
-    self._targetAlignmentThetaController = PIDController(
-      self._constants.kTargetAlignmentThetaControllerPIDConstants.P, 
-      self._constants.kTargetAlignmentThetaControllerPIDConstants.I, 
-      self._constants.kTargetAlignmentThetaControllerPIDConstants.D
-    )
+    self._targetAlignmentThetaController = PIDController(*self._constants.kTargetAlignmentThetaControllerPID)
     self._targetAlignmentThetaController.enableContinuousInput(-180.0, 180.0)
     self._targetAlignmentThetaController.setTolerance(
       self._constants.kTargetAlignmentThetaControllerPositionTolerance, 
@@ -102,20 +94,20 @@ class DriveSubsystem(Subsystem):
     ).withName("DriveSubsystem:Drive")
 
   def drive(self, chassisSpeeds: ChassisSpeeds) -> None:
-    wheelSpeeds = self._constants.kDifferentialDriveKinematics.toWheelSpeeds(chassisSpeeds)
+    wheelSpeeds = self._constants.kDriveKinematics.toWheelSpeeds(chassisSpeeds)
     self._drivetrain.tankDrive(wheelSpeeds.left, wheelSpeeds.right)
 
   def _drive(self, speed: float, rotation: float) -> None:
     self._drivetrain.arcadeDrive(speed, rotation, True)
 
-  def getDifferentialModulePositions(self) -> DifferentialDriveWheelPositions:
-    positions = DifferentialDriveWheelPositions()
-    positions.left = self._differentialModules[DifferentialModuleLocation.LeftRear].getPosition()
-    positions.right = self._differentialModules[DifferentialModuleLocation.RightRear].getPosition()
-    return positions
+  def getModulePositions(self) -> DifferentialDriveModulePositions:
+    return DifferentialDriveModulePositions(
+      self._differentialModules[DifferentialModuleLocation.LeftRear].getPosition(),
+      self._differentialModules[DifferentialModuleLocation.RightRear].getPosition()
+    )
 
   def getChassisSpeeds(self) -> ChassisSpeeds:
-    return self._constants.kDifferentialDriveKinematics.toChassisSpeeds(
+    return self._constants.kDriveKinematics.toChassisSpeeds(
       DifferentialDriveWheelSpeeds(
         self._differentialModules[DifferentialModuleLocation.LeftRear].getVelocity(), 
         self._differentialModules[DifferentialModuleLocation.RightRear].getVelocity()

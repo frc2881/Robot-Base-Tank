@@ -1,5 +1,5 @@
 from wpilib import DigitalInput, SmartDashboard
-from .. import utils, logger
+from .. import logger, utils
 
 class BeamBreakSensor:
   def __init__(
@@ -9,7 +9,7 @@ class BeamBreakSensor:
     ) -> None:
     self._sensorName = sensorName
     
-    self._baseKey = f'Robot/Sensor/BeamBreak/{self._sensorName}'
+    self._baseKey = f'Robot/Sensors/BeamBreak/{self._sensorName}'
     self._digitalInput = DigitalInput(channel)
     self._isTriggered: bool = False
 

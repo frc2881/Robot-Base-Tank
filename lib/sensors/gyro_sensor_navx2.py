@@ -3,7 +3,7 @@ from wpilib import SmartDashboard, RobotBase
 from wpimath import units
 from wpimath.geometry import Rotation2d, Pose2d
 from navx import AHRS
-from .. import utils, logger
+from .. import logger, utils
 
 class GyroSensor_NAVX2():
   def __init__(
@@ -12,7 +12,7 @@ class GyroSensor_NAVX2():
     ) -> None:
     self._gyro = AHRS(comType)
 
-    self._baseKey = f'Robot/Sensor/Gyro'
+    self._baseKey = f'Robot/Sensors/Gyro'
 
     utils.addRobotPeriodic(self._updateTelemetry)
   

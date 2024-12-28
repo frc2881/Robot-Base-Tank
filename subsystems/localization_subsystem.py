@@ -5,31 +5,28 @@ from wpilib import SmartDashboard
 from wpimath import units
 from wpimath.geometry import Rotation2d, Pose2d, Pose3d
 from wpimath.estimator import DifferentialDrivePoseEstimator
-from wpimath.kinematics import DifferentialDriveWheelPositions
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib.sensors.pose_sensor import PoseSensor
-from lib.classes import TargetInfo
-from lib import utils, logger
+from lib.classes import TargetInfo, DifferentialDriveModulePositions
+from lib import logger, utils
 import constants
 
 class LocalizationSubsystem(Subsystem):
   def __init__(
       self,
-      poseSensors: list[PoseSensor],
+      poseSensors: tuple[PoseSensor, ...],
       getGyroRotation: Callable[[], Rotation2d],
-      getDifferentialModulePositions: Callable[[], DifferentialDriveWheelPositions]
+      getModulePositions: Callable[[], DifferentialDriveModulePositions]
     ) -> None:
     super().__init__()
     self._poseSensors = poseSensors
     self._getGyroRotation = getGyroRotation
-    self._getDifferentialModulePositions = getDifferentialModulePositions
+    self._getModulePositions = getModulePositions
 
-    positions = self._getDifferentialModulePositions()
     self._poseEstimator = DifferentialDrivePoseEstimator(
-      constants.Subsystems.Drive.kDifferentialDriveKinematics,
+      constants.Subsystems.Drive.kDriveKinematics,
       self._getGyroRotation(),
-      positions.left,
-      positions.right,
+      *self._getModulePositions(),
       Pose2d()
     )
 
@@ -52,8 +49,7 @@ class LocalizationSubsystem(Subsystem):
     pass
 
   def _updatePose(self) -> None:
-    positions = self._getDifferentialModulePositions()
-    self._poseEstimator.update(self._getGyroRotation(), positions.left, positions.right)
+    self._poseEstimator.update(self._getGyroRotation(), *self._getModulePositions())
     for poseSensor in self._poseSensors:
       estimatedRobotPose = poseSensor.getEstimatedRobotPose()
       if estimatedRobotPose is not None:

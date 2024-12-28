@@ -2,7 +2,7 @@ from commands2 import Command, cmd
 from wpilib import ADIS16470_IMU, SPI, SmartDashboard, RobotBase
 from wpimath import units
 from wpimath.geometry import Rotation2d, Pose2d
-from .. import utils, logger
+from .. import logger, utils
 
 class GyroSensor_ADIS16470():
   def __init__(
@@ -25,7 +25,7 @@ class GyroSensor_ADIS16470():
     self._commandCalibrationTime = commandCalibrationTime
     self._commandCalibrationDelay = commandCalibrationDelay
 
-    self._baseKey = f'Robot/Sensor/Gyro'
+    self._baseKey = f'Robot/Sensors/Gyro'
 
     utils.addRobotPeriodic(self._updateTelemetry)
 
