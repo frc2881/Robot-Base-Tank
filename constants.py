@@ -25,15 +25,15 @@ class Subsystems:
     kInputLimitDemo: units.percent = 0.5
     kInputRateLimitDemo: units.percent = 0.33
 
-    kDriftCorrectionThetaControllerPID = PID(0.01, 0, 0)
-    kDriftCorrectionThetaControllerPositionTolerance: float = 0.5
-    kDriftCorrectionThetaControllerVelocityTolerance: float = 0.5
+    kDriftCorrectionControllerPID = PID(0.01, 0, 0)
+    kDriftCorrectionPositionTolerance: float = 0.5
+    kDriftCorrectionVelocityTolerance: float = 0.5
 
-    kTargetAlignmentThetaControllerPID = PID(0.075, 0, 0)
-    kTargetAlignmentThetaControllerPositionTolerance: float = 1.0
-    kTargetAlignmentThetaControllerVelocityTolerance: float = 1.0
+    kTargetAlignmentControllerPID = PID(0.075, 0, 0)
+    kTargetAlignmentPositionTolerance: float = 1.0
+    kTargetAlignmentVelocityTolerance: float = 1.0
     kTargetAlignmentCarpetFrictionCoeff: float = 0.2
-    kTargetAlignmentHeadingInversion: units.degrees = 180.0
+    kTargetAlignmentHeadingAdjustment: units.degrees = 180.0
 
     kPathPlannerRobotConfig = PATHPLANNER_ROBOT_CONFIG
     kPathPlannerController = PPLTVController(0.02)

@@ -31,19 +31,19 @@ class DriveSubsystem(Subsystem):
     )
 
     self._isDriftCorrectionActive: bool = False
-    self._driftCorrectionThetaController = PIDController(*self._constants.kDriftCorrectionThetaControllerPID)
-    self._driftCorrectionThetaController.enableContinuousInput(-180.0, 180.0)
-    self._driftCorrectionThetaController.setTolerance(
-      self._constants.kDriftCorrectionThetaControllerPositionTolerance, 
-      self._constants.kDriftCorrectionThetaControllerVelocityTolerance
+    self._driftCorrectionController = PIDController(*self._constants.kDriftCorrectionControllerPID)
+    self._driftCorrectionController.enableContinuousInput(-180.0, 180.0)
+    self._driftCorrectionController.setTolerance(
+      self._constants.kDriftCorrectionPositionTolerance, 
+      self._constants.kDriftCorrectionVelocityTolerance
     )
 
     self._isAlignedToTarget: bool = False
-    self._targetAlignmentThetaController = PIDController(*self._constants.kTargetAlignmentThetaControllerPID)
-    self._targetAlignmentThetaController.enableContinuousInput(-180.0, 180.0)
-    self._targetAlignmentThetaController.setTolerance(
-      self._constants.kTargetAlignmentThetaControllerPositionTolerance, 
-      self._constants.kTargetAlignmentThetaControllerVelocityTolerance
+    self._targetAlignmentController = PIDController(*self._constants.kTargetAlignmentControllerPID)
+    self._targetAlignmentController.enableContinuousInput(-180.0, 180.0)
+    self._targetAlignmentController.setTolerance(
+      self._constants.kTargetAlignmentPositionTolerance, 
+      self._constants.kTargetAlignmentVelocityTolerance
     )
 
     self._inputXFilter = SlewRateLimiter(self._constants.kInputRateLimitDemo)
@@ -124,17 +124,17 @@ class DriveSubsystem(Subsystem):
     ).beforeStarting(
       lambda: [
         self.clearTargetAlignment(),
-        self._targetAlignmentThetaController.reset(),
-        self._targetAlignmentThetaController.setSetpoint(utils.wrapAngle(getTargetHeading() + self._constants.kTargetAlignmentHeadingInversion))  
+        self._targetAlignmentController.reset(),
+        self._targetAlignmentController.setSetpoint(utils.wrapAngle(getTargetHeading() + self._constants.kTargetAlignmentHeadingInversion))  
       ]
     ).until(
       lambda: self._isAlignedToTarget
     ).withName("DriveSubsystem:AlignToTarget")
 
   def _alignToTarget(self, robotHeading: units.degrees) -> None:
-    speedRotation = self._targetAlignmentThetaController.calculate(robotHeading)
+    speedRotation = self._targetAlignmentController.calculate(robotHeading)
     speedRotation += math.copysign(self._constants.kTargetAlignmentCarpetFrictionCoeff, speedRotation)
-    if self._targetAlignmentThetaController.atSetpoint():
+    if self._targetAlignmentController.atSetpoint():
       speedRotation = 0
       self._isAlignedToTarget = True
     self.drive(ChassisSpeeds(0, 0, speedRotation))
