@@ -39,12 +39,11 @@ class Subsystems:
     kPathPlannerController = PPLTVController(0.02)
     kPathFindingConstraints = PathConstraints(2.4, 1.6, units.degreesToRadians(540), units.degreesToRadians(720))
 
-    _wheelDiameter: units.meters = units.inchesToMeters(3.0)
-    _drivingMotorReduction: float = 8.46
     _differentialModuleConstants = DifferentialModuleConstants(
+      wheelDiameter = units.inchesToMeters(3.0),
       drivingMotorControllerType = MotorControllerType.SparkMax,
       drivingMotorCurrentLimit = 50,
-      drivingEncoderPositionConversionFactor = (_wheelDiameter * math.pi) / _drivingMotorReduction
+      drivingMotorReduction = 8.46
     )
 
     kDifferentialModuleConfigs: tuple[DifferentialModuleConfig, ...] = (
