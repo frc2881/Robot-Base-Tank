@@ -95,12 +95,13 @@ class DriveSubsystem(Subsystem):
       lambda: self._drive(getLeftY(), getRightX())
     ).withName("DriveSubsystem:Drive")
 
+  def _drive(self, speed: float, rotation: float) -> None:
+    self._drivetrain.arcadeDrive(speed, rotation, True)
+
   def drive(self, chassisSpeeds: ChassisSpeeds) -> None:
     wheelSpeeds = self._constants.kDriveKinematics.toWheelSpeeds(chassisSpeeds)
     self._drivetrain.tankDrive(wheelSpeeds.left, wheelSpeeds.right)
-
-  def _drive(self, speed: float, rotation: float) -> None:
-    self._drivetrain.arcadeDrive(speed, rotation, True)
+    self.clearTargetAlignment()
 
   def getModulePositions(self) -> DifferentialDriveModulePositions:
     return DifferentialDriveModulePositions(
