@@ -40,6 +40,8 @@ class LocalizationService():
     SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
     SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
 
+    utils.addRobotPeriodic(self._periodic)
+
   def _periodic(self) -> None:
     self._updateRobotPose()
     self._updateTargets()
@@ -77,8 +79,8 @@ class LocalizationService():
       case _:
         target = self._targets.get(utils.getTargetHash(self._robotPose.nearest(self._targetPoses)))
         return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])
-  
-  def hasVisionTargets(self) -> bool:
+
+  def hasVisionTarget(self) -> bool:
     for poseSensor in self._poseSensors:
       if poseSensor.hasTarget():
         return True

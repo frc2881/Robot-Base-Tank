@@ -101,7 +101,8 @@ class DriveSubsystem(Subsystem):
   def drive(self, chassisSpeeds: ChassisSpeeds) -> None:
     wheelSpeeds = self._constants.kDriveKinematics.toWheelSpeeds(chassisSpeeds)
     self._drivetrain.tankDrive(wheelSpeeds.left, wheelSpeeds.right)
-    self.clearTargetAlignment()
+    if chassisSpeeds.vx > 0 or chassisSpeeds.vy > 0:
+      self.clearTargetAlignment()
 
   def getModulePositions(self) -> DifferentialDriveModulePositions:
     return DifferentialDriveModulePositions(
@@ -189,6 +190,7 @@ class DriveSubsystem(Subsystem):
   
   def clearTargetAlignment(self) -> None:
     self._isAlignedToTarget = False
+    self._targetPose = None
 
   def reset(self) -> None:
     self.drive(ChassisSpeeds())
