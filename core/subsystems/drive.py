@@ -27,8 +27,8 @@ class DriveSubsystem(Subsystem):
     self._differentialModules = tuple(DifferentialModule(c) for c in self._constants.kDifferentialModuleConfigs)
     
     self._drivetrain = DifferentialDrive(
-      self._differentialModules[DifferentialModuleLocation.LeftFront].getMotorController(),
-      self._differentialModules[DifferentialModuleLocation.RightFront].getMotorController()
+      self._differentialModules[DifferentialModuleLocation.Left].getMotorController(),
+      self._differentialModules[DifferentialModuleLocation.Right].getMotorController()
     )
 
     self._isDriftCorrectionActive: bool = False
@@ -105,15 +105,15 @@ class DriveSubsystem(Subsystem):
 
   def getModulePositions(self) -> DifferentialDriveModulePositions:
     return DifferentialDriveModulePositions(
-      self._differentialModules[DifferentialModuleLocation.LeftRear].getPosition(),
-      self._differentialModules[DifferentialModuleLocation.RightRear].getPosition()
+      self._differentialModules[DifferentialModuleLocation.Left].getPosition(),
+      self._differentialModules[DifferentialModuleLocation.Right].getPosition()
     )
 
   def getChassisSpeeds(self) -> ChassisSpeeds:
     return self._constants.kDriveKinematics.toChassisSpeeds(
       DifferentialDriveWheelSpeeds(
-        self._differentialModules[DifferentialModuleLocation.LeftRear].getVelocity(), 
-        self._differentialModules[DifferentialModuleLocation.RightRear].getVelocity()
+        self._differentialModules[DifferentialModuleLocation.Left].getVelocity(), 
+        self._differentialModules[DifferentialModuleLocation.Right].getVelocity()
       )
     )
 

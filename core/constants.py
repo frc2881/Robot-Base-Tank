@@ -8,8 +8,9 @@ from pathplannerlib.config import RobotConfig
 from pathplannerlib.controller import PPLTVController
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
+from rev import SparkLowLevel
 from lib import logger, utils
-from lib.classes import Alliance, PID, Tolerance, MotorControllerType, DifferentialModuleConstants, DifferentialModuleConfig, DifferentialModuleLocation, PoseSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants
+from lib.classes import Alliance, PID, Tolerance, DifferentialModuleConstants, DifferentialModuleConfig, DifferentialModuleLocation, PoseSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants
 from core.classes import Target, TargetType, TargetAlignmentLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
@@ -28,18 +29,19 @@ class Subsystems:
 
     _differentialModuleConstants = DifferentialModuleConstants(
       wheelDiameter = units.inchesToMeters(3.0),
-      drivingMotorControllerType = MotorControllerType.SparkMax,
+      drivingMotorControllerType = SparkLowLevel.SparkModel.kSparkMax,
+      drivingMotorType = SparkLowLevel.MotorType.kBrushless,
       drivingMotorCurrentLimit = 50,
       drivingMotorReduction = 8.46
     )
 
     kDifferentialModuleConfigs: tuple[DifferentialModuleConfig, ...] = (
-      DifferentialModuleConfig(DifferentialModuleLocation.LeftFront, 2, None, True, _differentialModuleConstants),
-      DifferentialModuleConfig(DifferentialModuleLocation.LeftCenter, 3, 2, True, _differentialModuleConstants),
-      DifferentialModuleConfig(DifferentialModuleLocation.LeftRear, 4, 2, True, _differentialModuleConstants),
-      DifferentialModuleConfig(DifferentialModuleLocation.RightFront, 5, None, False, _differentialModuleConstants),
-      DifferentialModuleConfig(DifferentialModuleLocation.RightCenter, 6, 5, False, _differentialModuleConstants),
-      DifferentialModuleConfig(DifferentialModuleLocation.RightRear, 7, 5, False, _differentialModuleConstants)
+      DifferentialModuleConfig(DifferentialModuleLocation.Left, 2, None, True, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.Right, 5, None, False, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.Left, 3, 2, True, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.Left, 4, 2, True, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.Right, 6, 5, False, _differentialModuleConstants),
+      DifferentialModuleConfig(DifferentialModuleLocation.Right, 7, 5, False, _differentialModuleConstants)
     )
 
     kDriveKinematics = DifferentialDriveKinematics(kTrackWidth)
