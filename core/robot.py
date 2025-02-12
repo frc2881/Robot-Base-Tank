@@ -43,6 +43,10 @@ class RobotCore:
     self.autoCommands = AutoCommands(self)
 
   def _initTriggers(self) -> None:
+    self._setupDriverControls()
+    self._setupOperatorControls()
+
+  def _setupDriverControls(self) -> None:
     self.driveSubsystem.setDefaultCommand(
       self.driveSubsystem.driveCommand(
         self.driverController.getLeftY,
@@ -66,6 +70,8 @@ class RobotCore:
     self.driverController.start().onTrue(self.gyroSensor.calibrateCommand())
     self.driverController.back().onTrue(self.gyroSensor.resetCommand())
 
+  def _setupOperatorControls(self) -> None:
+    pass
     # self.operatorController.rightTrigger().whileTrue(cmd.none())
     # self.operatorController.rightBumper().whileTrue(cmd.none())
     # self.operatorController.leftTrigger().whileTrue(cmd.none())

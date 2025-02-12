@@ -102,7 +102,7 @@ class DriveSubsystem(Subsystem):
     wheelSpeeds = self._constants.kDriveKinematics.toWheelSpeeds(chassisSpeeds)
     self._drivetrain.tankDrive(wheelSpeeds.left, wheelSpeeds.right)
     if chassisSpeeds.vx > 0 or chassisSpeeds.vy > 0:
-      self.clearTargetAlignment()
+      self.resetTargetAlignment()
 
   def getModulePositions(self) -> DifferentialDriveModulePositions:
     return DifferentialDriveModulePositions(
@@ -144,7 +144,7 @@ class DriveSubsystem(Subsystem):
       targetPose: Pose3d, 
       targetAlignmentMode: TargetAlignmentMode
     ) -> None:
-    self.clearTargetAlignment()
+    self.resetTargetAlignment()
     self._targetPose = targetPose
     self._targetAlignmentRotationController.reset()
     if targetAlignmentMode == TargetAlignmentMode.Heading:
@@ -156,22 +156,16 @@ class DriveSubsystem(Subsystem):
     
   def _runTargetAlignment(self, robotPose: Pose2d, targetAlignmentMode: TargetAlignmentMode) -> None:
     targetTranslation = self._targetPose.__sub__(Pose3d(robotPose))
-
     speedRotation = 0
     speedTranslationX = 0
     speedTranslationY = 0
-
     # TODO: implement differential drive target alignment logic and drive values
-
     # if not self._targetAlignmentRotationController.atSetpoint():
     #   speedRotation = self._targetAlignmentRotationController.calculate(robotPose.rotation().degrees())
-
     # if targetAlignmentMode == TargetAlignmentMode.Translation and not self._targetAlignmentTranslationXController.atSetpoint():
     #   speedTranslationX = self._targetAlignmentTranslationXController.calculate(targetTranslation.X())
-
     # if targetAlignmentMode == TargetAlignmentMode.Translation and not self._targetAlignmentTranslationYController.atSetpoint():
     #   speedTranslationY = self._targetAlignmentTranslationYController.calculate(targetTranslation.Y())
-
     # self._setSwerveModuleStates(
     #   self._constants.kDriveKinematics.toSwerveModuleStates(
     #     ChassisSpeeds(
@@ -181,20 +175,19 @@ class DriveSubsystem(Subsystem):
     #     )
     #   )
     # )
-
     if speedRotation == 0 and speedTranslationX == 0 and speedTranslationY == 0:
       self._isAlignedToTarget = True
 
   def isAlignedToTarget(self) -> bool:
     return self._isAlignedToTarget
   
-  def clearTargetAlignment(self) -> None:
+  def resetTargetAlignment(self) -> None:
     self._isAlignedToTarget = False
     self._targetPose = None
 
   def reset(self) -> None:
     self.drive(ChassisSpeeds())
-    self.clearTargetAlignment()
+    self.resetTargetAlignment()
   
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Drive/IsAlignedToTarget", self._isAlignedToTarget)
